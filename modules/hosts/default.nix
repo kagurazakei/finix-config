@@ -3,9 +3,7 @@
   inputs,
   lib,
   zpkgs,
-  ...
 }:
-
 self.modules.hosts
 |> builtins.attrNames
 |> (
@@ -59,9 +57,23 @@ self.modules.hosts
           system
           ;
         modulesPath = toString inputs.nixpkgs + "/nixos/modules";
+    inputs.nixpkgs.lib.nixosSystem {
+      inherit lib;
+      modules = [
+        self.modules.hosts.${hostname}
+        { nixpkgs.overlays = import ../../overlays { inherit inputs; }; }
+      ];
+      specialArgs = {
+        inherit
+          self
+          inputs
+          system
+          zpkgs
+          ;
       }
       // inputs;
     }
   )
 )
 |> (finix: { inherit finix; })
+
